@@ -1,3 +1,3 @@
-# art
+# Art Playground
 
-A new Flutter project.
+A Flutter demo application with generic art examples
