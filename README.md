@@ -1,3 +1,3 @@
-# Art Playground
+# Art Processing Playground
 
-A Flutter demo application with generic art examples
+A Flutter demo application with generic art processing examples :)
