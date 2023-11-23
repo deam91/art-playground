@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:vector_math/vector_math_64.dart';
 
 vecToMatrix(Vector3 v) {
@@ -61,4 +63,30 @@ dynamic matmul(List<List<double>> a, dynamic b) {
     }
   }
   return result;
+}
+
+List<List<double>> rotationZ(double angle) => [
+      [cos(angle), -sin(angle), 0],
+      [sin(angle), cos(angle), 0],
+      [0, 0, 1]
+    ];
+
+List<List<double>> rotationX(double angle) => [
+      [1, 0, 0],
+      [0, cos(angle), -sin(angle)],
+      [0, sin(angle), cos(angle)],
+    ];
+
+List<List<double>> rotationY(double angle) => [
+      [cos(angle), 0, -sin(angle)],
+      [0, 1, 0],
+      [sin(angle), 0, cos(angle)],
+    ];
+
+List<List<double>> projection({double distance = 1, double z = 0}) {
+  final pz = 1 / (distance - z);
+  return <List<double>>[
+    [pz, 0, 0],
+    [0, pz, 0]
+  ];
 }

@@ -1,4 +1,4 @@
-import 'package:art/constants.dart';
+import 'package:art/common/constants.dart';
 
 int getIX(int x, int y) {
   return x + y * N;

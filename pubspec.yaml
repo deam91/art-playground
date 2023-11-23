@@ -7,11 +7,19 @@ environment:
   sdk: ">=3.1.0 <4.0.0"
 
 dependencies:
+  bitsdojo_window: ^0.1.5
   fast_noise: ^1.0.1
   flutter:
     sdk: flutter
   flutter_processing: ^0.2.0
   vector_math: ^2.1.4
+  flutter_colorpicker: ^1.0.3
+  url_launcher: ^6.2.1
+  flutter_svg: ^2.0.9
+  xml: ^6.3.0
+  svg_path_parser: ^1.1.1
+  path: ^1.8.3
+  ffi: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -20,5 +28,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # assets:
-  #   - assets/
+  assets:
+    - assets/
+    - assets/fonts/
+    - assets/parser/
+  fonts:
+    - family: SQUARE721
+      fonts:
+        - asset: assets/fonts/SQUARE721_BT_ROMAN.TTF
+        - asset: assets/fonts/SQUARE721_CN_BT_BOLD.TTF
+        - asset: assets/fonts/SQUARE721_CN_BT_ROMAN.TTF

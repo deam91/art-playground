@@ -1,24 +1,25 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:art/constants.dart';
+import 'package:art/common/camera/matrix.dart';
+import 'package:art/common/constants.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:flutter_processing/flutter_processing.dart';
 import 'package:vector_math/vector_math_64.dart';
 
-class Particle {
-  Vector2 pos = Vector2.zero();
-  Vector2 vel = Vector2.zero();
-  Vector2 acc = Vector2.zero();
-  Vector2 prevPos = Vector2.zero();
+class Particle3 {
+  Vector3 pos = Vector3.zero();
+  Vector3 vel = Vector3.zero();
+  Vector3 acc = Vector3.zero();
+  Vector3 prevPos = Vector3.zero();
   final maxSpeed = 5.0;
   final double index;
   final double width;
   final double height;
 
-  Particle({required this.width, required this.height, required this.index}) {
-    pos =
-        Vector2(Random().nextDouble() * width, Random().nextDouble() * height);
+  Particle3({required this.width, required this.height, required this.index}) {
+    pos = Vector3(
+        Random().nextDouble() * width, Random().nextDouble() * height, 0);
     prevPos = pos.copyInto(prevPos);
   }
 
@@ -26,10 +27,10 @@ class Particle {
     vel.add(acc);
     vel.limit(maxSpeed);
     pos.add(vel);
-    acc.multiply(Vector2.zero());
+    acc.multiply(Vector3.zero());
   }
 
-  applyForce(Vector2 force) {
+  applyForce(Vector3 force) {
     acc.add(force);
   }
 
@@ -66,10 +67,8 @@ class Particle {
     }
   }
 
-  void follow(List<Vector2> flowfield, int cols) {
-    final x = (pos.x / scale).floor();
-    final y = (pos.y / scale).floor();
-    final index = x + y * cols;
+  void follow(List<Vector3> flowfield, int cols) {
+    final index = pos.x.floor() + pos.y.floor() * cols;
     final force = flowfield[index];
     applyForce(force);
   }

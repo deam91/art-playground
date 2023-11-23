@@ -1,155 +1,402 @@
-import 'dart:math';
-
-import 'package:art/constants.dart';
-import 'package:art/camera/matrix.dart';
-import 'package:art/particles/particle.dart';
-import 'package:fast_noise/fast_noise.dart';
+import 'package:art/common/utils.dart';
+import 'package:art/pages/atoms_sphere.dart';
+import 'package:art/pages/drawing.dart';
+import 'package:art/pages/rings/rings.dart';
+import 'package:art/pages/perlin_field.dart';
+import 'package:art/pages/perlin_sphere.dart';
+import 'package:art/pages/supershapes.dart';
+import 'package:art/pages/terrain/terrain.dart';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_processing/flutter_processing.dart';
-import 'package:vector_math/vector_math_64.dart' as vm;
+import 'package:flutter_svg/flutter_svg.dart';
+import 'common/colors.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const ProcessingApp());
+  doWhenWindowReady(() {
+    const initialSize = Size(1200, 650);
+    appWindow.minSize = const Size(810, 450);
+    appWindow.size = initialSize;
+    appWindow.alignment = Alignment.center;
+    appWindow.title = 'Art? Playground';
+    appWindow.show();
+  });
 }
 
-class MainApp extends StatefulWidget {
-  const MainApp({super.key});
-
-  @override
-  State<MainApp> createState() => _MainAppState();
-}
-
-class _MainAppState extends State<MainApp> {
-  final densityNotifier = ValueNotifier<Offset>(Offset.zero);
-
-  final perlinNoise = PerlinNoise(
-    seed: 200 * 200,
-    frequency: .01,
-    octaves: 8,
-  );
-
-  final particles = <Particle>[];
-  var inc = 2.0;
-  var cols = 0;
-  var rows = 0;
-  var zoff = .0;
-
-  var flowfield = <vm.Vector3>[];
-
-  List<List<double>> rotationZ(double angle) => [
-        [cos(angle), -sin(angle), 0],
-        [sin(angle), cos(angle), 0],
-        [0, 0, 1]
-      ];
-
-  List<List<double>> rotationX(double angle) => [
-        [1, 0, 0],
-        [0, cos(angle), -sin(angle)],
-        [0, sin(angle), cos(angle)],
-      ];
-
-  List<List<double>> rotationY(double angle) => [
-        [cos(angle), 0, -sin(angle)],
-        [0, 1, 0],
-        [sin(angle), 0, cos(angle)],
-      ];
-  double r = 0;
-  vm.Vector3 center = vm.Vector3.zero();
-  double angle = 0;
-  int total = 50;
+class ProcessingApp extends StatelessWidget {
+  const ProcessingApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Stack(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
-              final height = constraints.maxHeight;
-              return Processing(
-                sketch: Sketch.simple(
-                  setup: (sketch) {
-                    sketch.size(width: width.toInt(), height: height.toInt());
-                    r = 2;
-                    angle = 0;
-                    particles.clear();
-                    for (var i = 0; i < total; i++) {
-                      particles.add(Particle(
-                          index: i / total, width: width, height: height));
-                    }
-                    flowfield = List.filled(
-                        1 + total + total * total, vm.Vector3.zero());
-                    sketch.background(color: Colors.black);
-                  },
-                  draw: (sketch) async {
-                    // ----- Sphere
-                    sketch.pushMatrix();
-                    // sketch.background(color: Colors.black.withOpacity(.4));
-                    sketch.translate(x: width / 2, y: height / 2);
-                    // angle = sketch.QUARTER_PI;
-                    var xoff = 0.0;
-                    for (var i = 0; i < total; i++) {
-                      var yoff = 0.0;
-                      final lon =
-                          sketch.map(i, 0, total, -sketch.PI, sketch.PI);
-                      for (var j = 0; j < total; j++) {
-                        final lat = sketch.map(
-                            j, 0, total, -sketch.HALF_PI, sketch.HALF_PI);
-                        sketch.noiseDetail(octaves: 8, falloff: .1);
-                        sketch.noiseSeed((total * total).toInt());
-                        final noiseValue =
-                            sketch.noise(x: xoff, y: yoff, z: zoff);
-                        final angleLon = lon.toDouble() * noiseValue * 4;
-                        final angleLat = lat.toDouble() * noiseValue * 4;
-                        final vector = vm.Vector3.zero().fromAngle(
-                            angleLon.toDouble(), angleLat.toDouble());
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(useMaterial3: true).copyWith(
+        textTheme: const TextTheme(
+          titleLarge: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+          titleMedium: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+          titleSmall: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+          bodyLarge: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+          bodyMedium: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+          bodySmall: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+          labelLarge: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+          labelMedium: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+          labelSmall: TextStyle(
+              color: Colors.white,
+              fontFamily: 'SQUARE721',
+              fontWeight: FontWeight.w700),
+        ),
+      ),
+      routes: {
+        '/': (_) => const LoadingPage(),
+        '/home': (_) => const NavigationDrawerExample(),
+      },
+      initialRoute: '/',
+    );
+  }
+}
 
-                        /// just the sphere points
-                        // final x = (r * sin(lon) * cos(lat)) + center.x;
-                        // final y = (r * sin(lon) * sin(lat)) + center.y;
-                        // final z = (r * cos(lon)) + center.z;
-                        // final pos = vm.Vector3(x, y, z);
-                        //
-                        var rotated = matmul(rotationY(angle), vector);
-                        rotated = matmul(rotationZ(angle), rotated);
-                        // rotated = matmul(rotationX(angle), rotated);
-                        const distance = .01;
-                        final pz = 1.0 - (distance - rotated.z);
-                        List<List<double>> projection = [
-                          [1, 0, 0],
-                          [0, 1, 0]
-                        ];
+class LoadingPage extends StatefulWidget {
+  const LoadingPage({
+    super.key,
+  });
 
-                        final projectedVector = matmul(projection, rotated);
-                        (projectedVector as vm.Vector3).mult(200);
-                        // print(projectedVector.z);
+  @override
+  State<LoadingPage> createState() => _LoadingPageState();
+}
 
-                        xoff += inc;
-                        final value = sketch.map(
-                            i + j * total, 0, i + total * total, 0, 1);
-                        sketch.stroke(
-                            color: Color.lerp(Colors.orange.withOpacity(.2),
-                                    Colors.red, value.toDouble())!
-                                .withOpacity(.3));
-                        sketch.strokeWeight(5);
-                        sketch.point(
-                            x: projectedVector.x, y: projectedVector.y);
-                      }
-                      yoff += inc;
-                    }
-                    angle += sketch.radians(.5);
-                    zoff += 0.1;
-                    // sketch.noLoop();
-                  },
-                ),
-              );
-            },
-          ),
-        ],
+class _LoadingPageState extends State<LoadingPage> {
+  late final Future<bool>? loading;
+  Future<bool> _startLoading() async {
+    return Future<bool>.delayed(const Duration(seconds: 2), () => true);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loading = _startLoading();
+    loading?.whenComplete(
+        () => Navigator.of(context).pushReplacementNamed('/home'));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backgroundEndColor,
+      body: FutureBuilder(
+        future: loading,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox.square(
+                    dimension: 100,
+                    child: AtomsSphere(),
+                  ),
+                  SizedBox(height: 20),
+                  Text('PROCESSING...'),
+                ],
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
 }
 
-// THE SUN!! O.O
+class ExampleDestination {
+  const ExampleDestination(this.label, this.icon, this.selectedIcon);
+
+  final String label;
+  final Widget icon;
+  final Widget selectedIcon;
+}
+
+const List<ExampleDestination> destinations = <ExampleDestination>[
+  ExampleDestination(
+      'Rings',
+      Icon(Icons.circle_outlined, size: 18, color: Colors.white),
+      Icon(Icons.circle, size: 18, color: Colors.white)),
+  ExampleDestination(
+      'Perlin Noise',
+      Icon(Icons.line_axis_rounded, size: 18, color: Colors.white),
+      Icon(Icons.line_axis_rounded, size: 18, color: Colors.white)),
+  ExampleDestination(
+      '3D Sphere',
+      Icon(Icons.looks_3_outlined, size: 18, color: Colors.white),
+      Icon(
+        Icons.looks_3,
+        size: 18,
+        color: Colors.white,
+      )),
+  ExampleDestination(
+      'Supershapes',
+      Icon(Icons.looks_3_outlined, size: 18, color: Colors.white),
+      Icon(
+        Icons.looks_3,
+        size: 18,
+        color: Colors.white,
+      )),
+  ExampleDestination(
+      'Terrain',
+      Icon(Icons.terrain_outlined, size: 18, color: Colors.white),
+      Icon(
+        Icons.terrain_rounded,
+        size: 18,
+        color: Colors.white,
+      )),
+  ExampleDestination(
+      'Atoms Sphere',
+      Icon(Icons.looks_3_outlined, size: 18, color: Colors.white),
+      Icon(
+        Icons.looks_3,
+        size: 18,
+        color: Colors.white,
+      )),
+  ExampleDestination(
+      'Drawing',
+      Icon(Icons.draw_outlined, size: 18, color: Colors.white),
+      Icon(
+        Icons.draw,
+        size: 18,
+        color: Colors.white,
+      )),
+];
+
+class NavigationDrawerExample extends StatefulWidget {
+  const NavigationDrawerExample({super.key});
+
+  @override
+  State<NavigationDrawerExample> createState() =>
+      _NavigationDrawerExampleState();
+}
+
+class _NavigationDrawerExampleState extends State<NavigationDrawerExample> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
+  int screenIndex = 0;
+  late bool showNavigationDrawer;
+
+  void handleScreenChanged(int selectedScreen) {
+    setState(() {
+      screenIndex = selectedScreen;
+    });
+  }
+
+  getWidgetByIndex() {
+    if (screenIndex == 0) {
+      return const Expanded(
+        child: Rings(
+          rings: 10,
+          child: SizedBox.shrink(),
+        ),
+      );
+    } else if (screenIndex == 1) {
+      return Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: const PerlinField(),
+          ),
+        ),
+      );
+    } else if (screenIndex == 2) {
+      return const Expanded(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: PerlinSphere(),
+        ),
+      );
+    } else if (screenIndex == 3) {
+      return const SuperShapeContainer();
+    } else if (screenIndex == 4) {
+      return const Expanded(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Terrain(),
+        ),
+      );
+    } else if (screenIndex == 5) {
+      return const Expanded(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: AtomsSphere(),
+        ),
+      );
+    } else if (screenIndex == 6) {
+      return const Expanded(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Drawing(),
+        ),
+      );
+    }
+    return Text('Page Index = $screenIndex');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    showNavigationDrawer = MediaQuery.of(context).size.width >= 810;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: scaffoldKey,
+      backgroundColor: backgroundEndColor,
+      body: SafeArea(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Column(
+              children: [
+                Expanded(
+                  child: NavigationDrawer(
+                    backgroundColor: sidebarColor,
+                    surfaceTintColor: Colors.white,
+                    indicatorColor: backgroundEndColor,
+                    onDestinationSelected: handleScreenChanged,
+                    selectedIndex: screenIndex,
+                    children: <Widget>[
+                      WindowTitleBarBox(
+                        child: MoveWindow(),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(28, 16, 16, 10),
+                        child: Text(
+                          'Examples',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                      ),
+                      ...destinations.map(
+                        (ExampleDestination destination) {
+                          return NavigationDrawerDestination(
+                            label: Text(
+                              destination.label,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            icon: destination.icon,
+                            selectedIcon: destination.selectedIcon,
+                          );
+                        },
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(28, 16, 28, 10),
+                        child: Divider(),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 28),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () => launch(
+                                  'https://www.linkedin.com/in/deam-diaz/'),
+                              tooltip: 'deam-diaz',
+                              style: TextButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                foregroundColor: Colors.white,
+                              ),
+                              icon: SvgPicture.asset(
+                                'assets/linkedin.svg',
+                                color: Colors.white,
+                                width: 20,
+                                height: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            IconButton(
+                              onPressed: () =>
+                                  launch('https://twitter.com/deamdeveloper'),
+                              tooltip: '@deamdeveloper',
+                              style: TextButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                foregroundColor: Colors.white,
+                              ),
+                              icon: SvgPicture.asset(
+                                'assets/twitter.svg',
+                                color: Colors.white,
+                                width: 20,
+                                height: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            IconButton(
+                              onPressed: () =>
+                                  launch('https://github.com/deam91'),
+                              tooltip: 'deam91',
+                              style: TextButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                foregroundColor: Colors.white,
+                              ),
+                              icon: SvgPicture.asset(
+                                'assets/github.svg',
+                                color: Colors.white,
+                                width: 20,
+                                height: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              flex: 8,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: backgroundEndColor,
+                ),
+                child: Column(
+                  children: <Widget>[
+                    WindowTitleBarBox(
+                      child: MoveWindow(),
+                    ),
+                    getWidgetByIndex(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

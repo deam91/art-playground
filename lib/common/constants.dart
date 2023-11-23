@@ -8,7 +8,7 @@ const int iter = 4;
 
 const TWO_PI = pi * 2;
 const dimension = 600;
-const scale = 10;
+const scale = 20;
 
 const chars = 'Ñ@#W\$9876543210?!abc;:+=-,._ ';
 
